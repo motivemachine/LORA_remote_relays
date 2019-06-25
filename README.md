@@ -4,7 +4,7 @@ AC powered relay control board using Lora radios. Turn on lights, heaters or wha
 
 ## Notice about AC and relays!
 ##### Build at your own risk.
-This devices runs on 110VAC, and controls other 110VAC devices. Do not make this if you don't know what you're doing! Power traces are very conservatively rated at 8 amp total (both relays combined), further changes and testing should increase this. There is no snubber circuity on the relays, so as-is should only be used with restive loads (lights, heaters, etc.). Running motors should have proper circuitry places on the relay outputs to handle any noise or back-EMF from such devices.
+This devices runs on 110VAC, and controls other 110VAC devices. Do not make this if you don't know what you're doing! Power traces are very conservatively rated at 8 amp total (both relays combined), further changes and testing should increase this. There is no snubber circuity on the relays, so as-is should only be used with restive loads (lights, heaters, etc.). Small fans should be fine. Running motors should have proper circuitry in place on the relay outputs to handle any noise or back-EMF from such devices.
 
 ## Pinout description
 
@@ -18,8 +18,9 @@ I've broken out some extra arduino pins for integration in future projects. Star
 
 
 ## Usage/code description
+There are two PlatformIO project folders, one for the main program, one named 'circuit test'. The circuit test routing just verifies everything was connected correctly: blink leds, toggle relays, send a packet. Both programs are contained in the 'src/' folder and can be pulled from there if you wish to use the code with Arduino IDE.
 
-Some of these software function are in a state of change as I figure out how best to integrate these devices with my other Lora home network, but the basic function purposes remain the same:
+Some of these software functions are in a state of change as I figure out how best to integrate these devices with my Lora home network, but the basic purpose remains the same:
   * Set local(self) and destination radio addresses (in the form of a byte in Hex format)
       * Destination address is read from the dip switches on startup. Simply make sure these are the same across all boards. In this case it is the address of the Lora radio on the Raspberry Pi that controls everything.
       * If the button is held on startup (or while the arduino nano reset button is pressed) blink the LEDs while in the 'set local address' function. Set the dip switches *different* on each board so each one can be uniquely addressed by whatever device you have turning the relays on and off. Press button again to write this new address to EEPROM.
