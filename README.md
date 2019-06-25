@@ -8,6 +8,8 @@ This devices runs on 110VAC, and controls other 110VAC devices. Do not make this
 
 ## Pinout description
 
+![Pinouts](loraRemoteRelayPinout.png)
+
 I've broken out some extra arduino pins for integration in future projects. Starting from the upper left:
   * The first three pins from upper-left down are 5 volts, Analog 1, and ground. This was originally used for a TMP36 analog temperature sensor. This would also work with any of the Dallas One-wire digital temperature sensors.
   * Next we have a terminal block with Ground, analog 4 and analog 5. My purpose for these is to include some external on/off switches for the relays. Could be handy to turn the lights on manually when already standing next to them. The terminal block
