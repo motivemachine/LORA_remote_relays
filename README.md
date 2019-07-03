@@ -16,6 +16,9 @@ I've broken out some extra arduino pins for integration in future projects. Star
   * Final four pins are ground, analog 6, analog 7, and 5 volts. These are just for future projects and could be used for more external sensors, switches, or status LEDs
   * To the lower right of the Nano the serial pins are exposed for future ideas.
 
+## Completed board
+This is a photo of the complete v1.1 board. The schematics are up to date with v1.2, which adds some extra IO pins, adjusted silkscreen, and moved some parts to make them easier to work with (like moving the fuse holder farther away from the relays)
+![Completed 1.1 board](completeboard.JPG)
 
 ## Usage/code description
 There are two PlatformIO project folders, one for the main program, one named 'circuit test'. The circuit test routing just verifies everything was connected correctly: blink leds, toggle relays, send a packet. Both programs are contained in the 'src/' folder and can be pulled from there if you wish to use the code with Arduino IDE.
