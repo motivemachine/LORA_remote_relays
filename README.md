@@ -6,6 +6,9 @@ AC powered relay control board using Lora radios. Turn on lights, heaters or wha
 ##### Build at your own risk.
 This devices runs on 110VAC, and controls other 110VAC devices. Do not make this if you don't know what you're doing! Power traces are very conservatively rated at 8 amp total (both relays combined), further changes and testing should increase this. There is no snubber circuity on the relays, so as-is should only be used with restive loads (lights, heaters, etc.). Small fans should be fine. Running motors should have proper circuitry in place on the relay outputs to handle any noise or back-EMF from such devices.
 
+## Project status
+Board design and code for v1.1 is completed and all is running well. Board v1.2 design is complete but code has not been written yet. Code for v1.1 should work almost as-is after changing the pin numbers. Primarily the difference between 1.1 and 1.2 is that 1.1 must poll the radio for new packets while the new version will use interrupts. Other changes are improved silkscreening and more IO breakouts for other projects.
+
 ## Pinout description
 
 ![Pinouts](loraRemoteRelayPinout.png)
@@ -33,13 +36,10 @@ Some of these software functions are in a state of change as I figure out how be
     * This isn't quite complete yet but the plan is to implement a proper ack/nack response for more reliable operation.
     * The second thing is to reply to the message 'STAT' with the current status of both relays. The thinking is any one control device may turn the relays on and off, but it would be nice of other control devices could later know what their status is without toggling anything on or off. This also lets a controller know that a specific board is, in fact, online and reachable.
 
-###### A note about receiving messages
-I forgot to attach the Lora modules IRQ pin to a proper external interrupt on the Arduino Nano. Currently the Nano constantly queries the radio for incoming messages. With an external pull-down resistor I think I can change this to a pin-change interrupt.
-
 ## TODO
 
 - [ ] Create and upload a proper BOM
-- [ ] Finish and debug 'status' functions
+- [x] Finish and debug 'status' functions
 - [ ] Further testing of board temperature rise at high currents
 - [ ] Change from polling loop to pin-change interrupt
 - [ ] Clean up lots of old comments, debug info and test functions

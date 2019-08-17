@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name LORA_Relay_AC-rescue)(type Legacy)(uri ${KIPRJMOD}/LORA_Relay_AC-rescue.lib)(options "")(descr "")(disabled))
+)
