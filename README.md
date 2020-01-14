@@ -4,7 +4,7 @@ AC powered relay control board using Lora radios. Turn on lights, heaters or wha
 
 ## Notice about AC and relays!
 ##### Build at your own risk.
-This devices runs on 110VAC, and controls other 110VAC devices. Do not make this if you don't know what you're doing! Power traces are very conservatively rated at 8 amp total (both relays combined), further changes and testing should increase this. There is no snubber circuity on the relays, so as-is should only be used with restive loads (lights, heaters, etc.). Small fans should be fine. Running motors should have proper circuitry in place on the relay outputs to handle any noise or back-EMF from such devices.
+This devices runs on 110VAC, and controls other 110VAC devices. Do not make this if you don't know what you're doing! Power traces are very conservatively rated at 8 amp total (both relays combined), further changes and testing should increase this. There is no snubber circuity on the relays, so as-is should only be used with resistive loads (lights, heaters, etc.). Small fans should be fine. Running motors should have proper circuitry in place on the relay outputs to handle any noise or back-EMF from such devices.
 
 ## Project status
 Board design and code for v1.1 is completed and all is running well. Board v1.2 design is complete but code has not been written yet. Code for v1.1 should work almost as-is after changing the pin numbers. Primarily the difference between 1.1 and 1.2 is that 1.1 must poll the radio for new packets while the new version will use interrupts. Other changes are improved silkscreening and more IO breakouts for other projects.
