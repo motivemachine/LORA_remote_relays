@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include <EEPROM.h>
+#include <avr/wdt.h>
 
 // plans for v2: rework the board. make led attach to pin 9, attach D2 to the irq pin
 
@@ -37,6 +38,9 @@ bool relayStates[2] = {0,0};  //holds the on/off status of both relays
 
 byte localAddress = 0x14; //20    Will hardcode this for now, will determine from jumper/dip switches later
 byte destAddress = 0x25; //37
+
+int beatdelaytime = 1000;
+long beatdelay;
 
 ///////////These are keyword arrays, to be parsed in from the radio and be acted on
 char statCall[4] = {'S','T','A','T'};
@@ -98,16 +102,17 @@ void Receive(int packetSize)
       digitalWrite(ledTwo, relayStates[1]);
     }
     else // message must not be changing relay states. Convert to strings and look for keywords
-    {
-      if ((statCall[0] == incomingArray[0]) && (statCall[1] == incomingArray[1]) && (statCall[2] == incomingArray[2]) && (statCall[3] == incomingArray[3])) //this needs to be changed to strncmp asap
-      {
+    { // not yet finished
+      return;
+      //if ((statCall[0] == incomingArray[0]) && (statCall[1] == incomingArray[1]) && (statCall[2] == incomingArray[2]) && (statCall[3] == incomingArray[3])) //this needs to be changed to strncmp asap
+      //{
         //Serial.println(F("got status request"));
-        delay(600);       // long delay to let requester switch back to tx mode, will be shorter later after testing (now trying 200, down from 1000)
-        sayStatus(sender); // send status message to the address the 'STAT' request came from
-      }
+        //delay(600);       // long delay to let requester switch back to tx mode, will be shorter later after testing (now trying 200, down from 1000)
+        //sayStatus(sender); // send status message to the address the 'STAT' request came from
+      //}
     }
   }
-  delay(20);
+  //delay(20);
   //for (int t = 0; t < incomingLength; t++) // debug function. prints received array
   //{
     //Serial.print(incomingArray[t]);
@@ -196,15 +201,19 @@ if (!LoRa.begin(430E6))
   pinMode(temp, INPUT);
   pinMode(extOne, INPUT_PULLUP);
   pinMode(extTwo, INPUT_PULLUP);
-
+  wdt_disable();
+  delay(4000); // disable and delay watchdog timer to prevent reset loop when uploading new code
+  wdt_enable(WDTO_4S); // watchdog timer set to 4 seconds
   //Serial.println("Radio ready");
 
   //setDestaddr();  //set destination address from the 4 dip switches
   if (digitalRead(button) == LOW){setLocaladdr();} //hold button on startup to enter this function. Set desired local address with DIP switches. Press button again to save new address
 
   digitalWrite(ledOne, HIGH);
+  digitalWrite(ledTwo, HIGH);
   delay(1000);
   digitalWrite(ledOne, LOW);
+  digitalWrite(ledTwo, LOW);
   pinMode(irqPin, INPUT);
   //localAddress = EEPROM.read(1); //read previously stored local address
   localAddress = 0x14; //20
@@ -217,27 +226,34 @@ if (!LoRa.begin(430E6))
   LoRa.setSyncWord(0x12);
   //Serial.println("starting up");
   LoRa.setTxPower(10); //was 14
-  delay(1000);
+  wdt_reset(); // pat the dog
+  delay(500);
   LoRa.receive();
+  beatdelay = millis();
 }
 
 void loop()
 {
+  wdt_reset();
   if (digitalRead(button) == LOW) {
     //Serial.println("sending");
     sayStatus(0x25);
-    delay(500);
+    delay(400);
+  }
+
+  if (millis() - beatdelay > beatdelaytime) { // blink the #2 led as a heartbeat. For debugging it's problem with randomly hanging after about 4+ hours
+    digitalWrite(ledTwo, !digitalRead(ledTwo));
+    beatdelay = millis();
   }
   //poll continuously for new packets, calling for a return of packet size and running if it's > 0
   Receive(LoRa.parsePacket());
-  delay(100);
   if (!digitalRead(extOne)) //poll external switch for relay 1 button press
   {
     digitalWrite(relayOne, !digitalRead(relayOne));
 
     relayStates[0] = !relayStates[0];               // toggle relay setting and update states array
     digitalWrite(ledOne, relayStates[0]);
-    delay(200);    // debounce delay
+    delay(300);    // debounce delay
     // put a function here that declares the states
   }
   if (!digitalRead(extTwo)) // poll external switch for relay 2 button pressed
@@ -245,7 +261,7 @@ void loop()
     digitalWrite(relayTwo, !digitalRead(relayTwo));
     relayStates[1] = !relayStates[1];              // toggle relay setting and update status array
     digitalWrite(ledTwo, relayStates[1]);
-    delay(200);
+    delay(300);
   }
 
   /*{
