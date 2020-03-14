@@ -3,16 +3,14 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include <EEPROM.h>
-#include <avr/wdt.h>
-
-// plans for v2: rework the board. make led attach to pin 9, attach D2 to the irq pin
+//#include <avr/wdt.h>
 
 // ####### TODO  #######//
 // add IRQ pin-change interrupt function instead of polling the radio
 
 #define csPin 10
 #define resetPin A0
-//#define irqPin 9 //This is not an ATMEGA external interrupt, and will probably be handled manually with a pulldown resistor and a pin-change interrupt
+//#define irqPin 9 //This is not an ATMEGA external interrupt, and will probably be handled manually with a pulldown resistor and a pin-change interrupt in the future
 
 #define ledOne 3
 #define ledTwo 2
@@ -30,12 +28,12 @@
 #define extOne A5      //pins for external switches. Switch press is digital pin LOW
 #define extTwo A4
 
-//int packetSize = 0;
-int irqPin = 9;
-int switchArray[4];
-bool relayStates[2] = {0,0};  //holds the on/off status of both relays
+//int irqPin = 9;
+byte switchArray[4];
+//bool changeStates = true;
+byte relayStates[2] = {0,0};  //holds the on/off status of both relays
 //bool volatile readPacket = false; //flag to set in ISR if IRQ pin-change has triggered
-
+int packetLength;
 byte localAddress = 0x14; //20    Will hardcode this for now, will determine from jumper/dip switches later
 byte destAddress = 0x25; //37
 
@@ -67,9 +65,7 @@ void sayStatus(byte dest) //Function to update current relay status
 
 void Receive(int packetSize)
 {
-  if (packetSize == 0) return;
-  //Serial.println("recv");
-
+  //if (packetSize == 0) return;
   int i = 0;
   int recipient = LoRa.read();
   byte sender = LoRa.read();
@@ -86,6 +82,7 @@ void Receive(int packetSize)
   {
     //Serial.print("Msg is for another station: ");
     //Serial.println(recipient);
+    LoRa.receive();
     return;
   }
   else if (recipient == localAddress)
@@ -96,13 +93,19 @@ void Receive(int packetSize)
       //Serial.println(incomingArray[1]);
       relayStates[0] = (byte(incomingArray[0]) - 48);  //subtract the ASCII value of '0' to convert to actual int Zero.
       relayStates[1] = (byte(incomingArray[1]) - 48);
+      //changeStates = true;
+      if (relayStates[0] != 0) {relayStates[0] = 1;} // make sure array inputs are sensible
+      if (relayStates[1] != 0) {relayStates[1] = 1;}
       digitalWrite(relayOne, relayStates[0]);
       digitalWrite(ledOne, relayStates[0]);
       digitalWrite(relayTwo, relayStates[1]);
       digitalWrite(ledTwo, relayStates[1]);
+      LoRa.receive();
+      return;
     }
     else // message must not be changing relay states. Convert to strings and look for keywords
     { // not yet finished
+      LoRa.receive();
       return;
       //if ((statCall[0] == incomingArray[0]) && (statCall[1] == incomingArray[1]) && (statCall[2] == incomingArray[2]) && (statCall[3] == incomingArray[3])) //this needs to be changed to strncmp asap
       //{
@@ -170,8 +173,8 @@ void setup()
   //Serial.begin(9600);
   //Serial.println("Starting up");
 
-  LoRa.setPins(csPin, resetPin, 2);
-
+  //LoRa.setPins(csPin, resetPin, 2);
+  LoRa.setPins(csPin, resetPin);
   //Address select dip switches
   pinMode(jumpone, INPUT_PULLUP);
   pinMode(jumptwo, INPUT_PULLUP);
@@ -189,8 +192,8 @@ if (!LoRa.begin(430E6))
     }
   }
 
-  detachInterrupt(digitalPinToInterrupt(2)); //turn off that lora interrupt flag, we're not using it.
-  pinMode(irqPin, INPUT);
+  //detachInterrupt(digitalPinToInterrupt(2)); //turn off that lora interrupt flag, we're not using it.
+
   pinMode(ledOne, OUTPUT);
   pinMode(ledTwo, OUTPUT);
   pinMode(button, INPUT_PULLUP);
@@ -198,12 +201,12 @@ if (!LoRa.begin(430E6))
   pinMode(relayTwo, OUTPUT);
   digitalWrite(relayOne, relayStates[0]);
   digitalWrite(relayTwo, relayStates[1]);
-  pinMode(temp, INPUT);
+  //pinMode(temp, INPUT);
   pinMode(extOne, INPUT_PULLUP);
   pinMode(extTwo, INPUT_PULLUP);
-  wdt_disable();
-  delay(4000); // disable and delay watchdog timer to prevent reset loop when uploading new code
-  wdt_enable(WDTO_4S); // watchdog timer set to 4 seconds
+  //wdt_disable();
+  //delay(4000); // disable and delay watchdog timer to prevent reset loop when uploading new code
+  //wdt_enable(WDTO_4S); // watchdog timer set to 4 seconds
   //Serial.println("Radio ready");
 
   //setDestaddr();  //set destination address from the 4 dip switches
@@ -214,7 +217,6 @@ if (!LoRa.begin(430E6))
   delay(1000);
   digitalWrite(ledOne, LOW);
   digitalWrite(ledTwo, LOW);
-  pinMode(irqPin, INPUT);
   //localAddress = EEPROM.read(1); //read previously stored local address
   localAddress = 0x14; //20
   destAddress = 0x25; //37
@@ -226,15 +228,15 @@ if (!LoRa.begin(430E6))
   LoRa.setSyncWord(0x12);
   //Serial.println("starting up");
   LoRa.setTxPower(10); //was 14
-  wdt_reset(); // pat the dog
-  delay(500);
+  //wdt_reset(); // pat the dog
+  delay(200);
   LoRa.receive();
   beatdelay = millis();
 }
 
 void loop()
 {
-  wdt_reset();
+  //wdt_reset();
   if (digitalRead(button) == LOW) {
     //Serial.println("sending");
     sayStatus(0x25);
@@ -246,7 +248,9 @@ void loop()
     beatdelay = millis();
   }
   //poll continuously for new packets, calling for a return of packet size and running if it's > 0
-  Receive(LoRa.parsePacket());
+  packetLength = LoRa.parsePacket();
+  if (packetLength){Receive(packetLength);}
+  //Receive(LoRa.parsePacket());
   if (!digitalRead(extOne)) //poll external switch for relay 1 button press
   {
     digitalWrite(relayOne, !digitalRead(relayOne));
@@ -263,6 +267,14 @@ void loop()
     digitalWrite(ledTwo, relayStates[1]);
     delay(300);
   }
+  // if (changeStates)
+  // {
+  //   digitalWrite(relayOne, relayStates[0]);
+  //   digitalWrite(ledOne, relayStates[0]);
+  //   digitalWrite(relayTwo, relayStates[1]);
+  //   digitalWrite(ledTwo, relayStates[1]);
+  //   changeStates = false;
+  // }
 
   /*{
     Serial.print("heard packet");

@@ -1,6 +1,6 @@
 # Lora Remote Relays
 
-AC powered relay control board using Lora radios. Turn on lights, heaters or whatever else you need at a distance.
+AC powered relay control board using Lora radios. Turn on lights, heaters or anything else you need at a distance.
 
 ## Notice about AC and relays!
 ##### Build at your own risk.
@@ -42,5 +42,5 @@ Some of these software functions are in a state of change as I figure out how be
 - [x] Finish and debug 'status' functions
 - [ ] Further testing of board temperature rise at high currents
 - [ ] Change from polling loop to pin-change interrupt
-- [ ] Clean up lots of old comments, debug info and test functions
-- [ ] Add some pictures and test results
+- [x] Clean up lots of old comments, debug info and test functions
+- [x] Add watchdog timer for protection from random hangups.
