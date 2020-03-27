@@ -8,7 +8,7 @@
 
 #define csPin 10
 #define resetPin A0
-//#define irqPin 9 //This is not an ATMEGA external interrupt, and will probably be handled manually with a pulldown resistor and a pin-change interrupt in the future
+//#define irqPin 9 //This is not an ATMEGA external interrupt, and will probably be handled manually with a pulldown resistor and a pin-change interrupt
 
 #define ledOne 3
 #define ledTwo 2
@@ -193,7 +193,7 @@ if (!LoRa.begin(430E6))
   localAddress = EEPROM.read(1); //read previously stored local address
   //localAddress = 0x14; //20
 
-  sayStatus(destAddress); //send a status update to the home raspi when powered up
+  sayStatus(destAddress); //send a status update to the home receiver when powered up
   //Serial.println("starting up");
   LoRa.setTxPower(10); //was 14
   delay(200);
@@ -217,7 +217,6 @@ void loop()
   //poll continuously for new packets, calling for a return of packet size and running if it's > 0
   packetLength = LoRa.parsePacket();
   if (packetLength){Receive(packetLength);}
-  //Receive(LoRa.parsePacket());
   if (!digitalRead(extOne)) //poll external switch for relay 1 button press
   {
     digitalWrite(relayOne, !digitalRead(relayOne));
@@ -234,33 +233,4 @@ void loop()
     digitalWrite(ledTwo, relayStates[1]);
     delay(300);
   }
-  // if (changeStates)
-  // {
-  //   digitalWrite(relayOne, relayStates[0]);
-  //   digitalWrite(ledOne, relayStates[0]);
-  //   digitalWrite(relayTwo, relayStates[1]);
-  //   digitalWrite(ledTwo, relayStates[1]);
-  //   changeStates = false;
-  // }
-
-  /*{
-    Serial.print("heard packet");
-    while (LoRa.available())
-    {
-      Serial.print((char)LoRa.read());
-    }
-    Serial.println(" "); Serial.println(LoRa.packetRssi());
-  }*/
-  /*if (digitalRead(irqPin) == HIGH)
-  {
-    Serial.println("interrupt request recieved");
-    int packetSize = LoRa.parsePacket();
-    if (packetSize)
-    {
-      receiving(packetSize);
-      readPacket = false;
-      delay(200);
-    }
-  }*/
-
 }
