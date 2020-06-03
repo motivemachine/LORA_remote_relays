@@ -11,7 +11,7 @@ Board design and code for v1.1 is completed and all is running well. Board v1.2 
 
 ## Pinout description
 
-![Pinouts](loraRemoteRelayPinout.png)
+![Pinouts](loraRemoteRelayPinout_v1.2.png)
 
 I've broken out some extra arduino pins for integration in future projects. Starting from the upper left:
   * The first three pins from upper-left down are 5 volts, Analog 1, and ground. This was originally used for a TMP36 analog temperature sensor. This would also work with any of the Dallas One-wire digital temperature sensors.
